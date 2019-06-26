@@ -25,12 +25,14 @@
 #define TCS34725_SENSOR1_8_VALUES  (*((volatile uint32_t *) 0x40010810)) /* define value addrs of sensor 1-8 */
 #define TCS34725_SENSOR9_12_CONFIG (*((volatile uint32_t *) 0x40010c04)) /* define location addr of sensor 9-12  high input gpioB*/
 #define TCS34725_SENSOR9_12_VALUES (*((volatile uint32_t *) 0x40010c10)) /* define value addrs of sensor 9-12 */
-#define SENSORCOUNT 4
+#define SENSORCOUNT 1
 unsigned long time = 0;
 /* private functions */
 static _Bool checkDeviceID();
 static _Bool  initPins();
-static void rgb_setPin(uint32_t sensorPosition);
+static void rgb_setPin(uint8_t sensorPosition);
+static void rgb_resetPins();
+
 /* Enable register */
 union EnableRegister
 {
@@ -155,6 +157,15 @@ void rgb_init()
 }
 
 /*
+ *  Reset pins.
+ */
+static void rgb_resetPins()
+{
+    TCS34725_SENSOR1_8_VALUES = 0x00ff0000;
+    TCS34725_SENSOR9_12_VALUES = 0xf0000000;
+}
+
+/*
  * Function for initializing all gpio for the rgb sensors.
  */
 static _Bool initPins()
@@ -171,12 +182,15 @@ static _Bool initPins()
 /*
  * Used for setting rgb sensor pin.
  */
-static void rgb_setPin(uint32_t sensorPosition)
+static void rgb_setPin(uint8_t sensorPosition)
 {
     /* Reset pins */
-    TCS34725_SENSOR1_8_VALUES = 0x00ff0000;
-    TCS34725_SENSOR9_12_VALUES = 0xf0000000;
-    if(sensorPosition >= 0 &&  sensorPosition < 8)
+    rgb_resetPins();
+    if(sensorPosition == 0 )
+    {
+        TCS34725_SENSOR1_8_VALUES = (0x00000001);
+    }
+    else if(sensorPosition > 0 &&  sensorPosition < 8)
     {
         TCS34725_SENSOR1_8_VALUES = (0x00000001 << sensorPosition);
     }
@@ -206,6 +220,7 @@ struct RGB getRGB(uint8_t position)
         time++;
     time = 0;
     tmp_RGB.Blue = getBlue(position);
+    rgb_resetPins();
     return tmp_RGB;
 }
 
