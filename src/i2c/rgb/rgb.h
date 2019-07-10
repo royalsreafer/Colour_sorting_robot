@@ -4,22 +4,22 @@
 #include <stdint.h>
 
 /* Amount of sensors */
-#define SENSORCOUNT 1
+#define rgbSENSORCOUNT 1
 
 /* struct for rgb */
 struct RGB
 {
-    uint16_t Red;
-    uint16_t Green;
-    uint16_t Blue;
+    uint16_t usRed;
+    uint16_t usGreen;
+    uint16_t usBlue;
 };
 
 /* functions */
-void rgb_init();
+void RGBInit();
 uint8_t getSensorCount();
-struct RGB getRGB(uint8_t position);
-uint8_t getRed(uint8_t position);
-uint8_t getGreen(uint8_t position);
-uint8_t getBlue(uint8_t position);
+struct RGB xRGBgetRGB(uint8_t ucPosition);
+uint8_t ucRGBGetRed(uint8_t ucPosition);
+uint8_t ucRGBGetGreen(uint8_t ucPosition);
+uint8_t ucRGBGetBlue(uint8_t ucPosition);
 
 #endif	/* _RGB_H */

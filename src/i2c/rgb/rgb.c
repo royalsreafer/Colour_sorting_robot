@@ -37,11 +37,11 @@
 unsigned long time = 0;
 
 /* private functions */
-static _Bool checkDeviceID();
-static _Bool  initPins();
-static void rgb_setPin(uint8_t sensorPosition);
-static void rgb_resetPins();
-static void rgb_resetPin(uint8_t sensorPosition);
+static _Bool prvCheckDeviceID();
+static _Bool prvInitPins();
+static void  prvSetPin(uint8_t ucSensorPosition);
+static void  prvRGBResetPin(uint8_t ucSensorPosition);
+static void  prvRGBResetPins();
 
 /* Enable register */
 union EnableRegister
@@ -100,14 +100,14 @@ union ControlRegister
 /*
  * initialize function for TCS34725.
  */
-void rgb_init()
+void RGBInit()
 {
     /*initialize pins*/
-    initPins();
+    prvInitPins();
     int i = 0;
-    for(i = 0; i < SENSORCOUNT; i++) {
-        rgb_setPin(i);
-        if(checkDeviceID())
+    for(i = 0; i < rgbSENSORCOUNT; i++) {
+        prvSetPin(i);
+        if(prvCheckDeviceID())
         {
         /* Enables the adc */
         /* Select enable register(0x00) */
@@ -171,108 +171,108 @@ void rgb_init()
  */
 uint8_t getSensorCount()
 {
-    return SENSORCOUNT;
+    return rgbSENSORCOUNT;
 }
 
 /*
  * Returns the value of of each colour including clear (0-255) of the given rgb sensor.
  */
-struct RGB getRGB(uint8_t position)
+struct RGB xRGBgetRGB(uint8_t ucPosition)
 {
-    rgb_setPin(position);
+    prvSetPin(ucPosition);
     while(time < 200000)
         time++;
     time = 0;
     volatile struct RGB tmp_RGB;
-    tmp_RGB.Red = getRed(position);
+    tmp_RGB.usRed = ucRGBGetRed(ucPosition);
     while(time < 10)
         time++;
     time = 0;
-    tmp_RGB.Green = getGreen(position);
+    tmp_RGB.usGreen = ucRGBGetGreen(ucPosition);
     while(time < 10)
         time++;
     time = 0;
-    tmp_RGB.Blue = getBlue(position);
+    tmp_RGB.usBlue = ucRGBGetBlue(ucPosition);
     while(time < 100000)
         time++;
     time = 0;
-    rgb_resetPin(position);
+    prvRGBResetPin(ucPosition);
     return tmp_RGB;
 }
 
 /*
  * Returns the value of red(0-255) of the given rgb sensor.
  */
-uint8_t getRed(uint8_t position)
+uint8_t ucRGBGetRed(uint8_t ucPosition)
 {
-    volatile uint16_t tmpRed = 0, tmpClear = 0;
+    volatile uint16_t usTmpRed = 0, usTmpClear = 0;
     float fRed = 0;
-    uint8_t red = 0;
+    uint8_t ucRed = 0;
 
     /* read low Byte clear */
     i2c_begin_transmission(TCS34725_ADDRESS, TCS34725_CDATA | TCS34725_COMMAND_BIT);
     i2c_stop_transmission();
-    tmpClear = i2c_read_2_bytes(TCS34725_ADDRESS);
+    usTmpClear = i2c_read_2_bytes(TCS34725_ADDRESS);
 
     /* read low Byte red */
     i2c_begin_transmission(TCS34725_ADDRESS, TCS34725_RDATA | TCS34725_COMMAND_BIT);
     i2c_stop_transmission();
-    tmpRed = i2c_read_2_bytes(TCS34725_ADDRESS);
+    usTmpRed = i2c_read_2_bytes(TCS34725_ADDRESS);
 
-    fRed = (float)((float)tmpRed / (float)tmpClear) * 255.0;
-    red = fRed;
+    fRed = (float)((float)usTmpRed / (float)usTmpClear) * 255.0;
+    ucRed = fRed;
 
-    return red;
+    return ucRed;
 }
 
 /*
  * Returns the value of green(0-255) of the given rgb sensor.
  */
-uint8_t getGreen(uint8_t position)
+uint8_t ucRGBGetGreen(uint8_t ucPosition)
 {
-    volatile uint16_t tmpGreen = 0, tmpClear = 0;
+    volatile uint16_t usTmpGreen = 0, usTmpClear = 0;
     float fGreen = 0;
-    uint8_t green = 0;
+    uint8_t ucGreen = 0;
 
     /* read low Byte clear */
     i2c_begin_transmission(TCS34725_ADDRESS, TCS34725_CDATA | TCS34725_COMMAND_BIT);
     i2c_stop_transmission();
-    tmpClear = i2c_read_2_bytes(TCS34725_ADDRESS);
+    usTmpClear = i2c_read_2_bytes(TCS34725_ADDRESS);
 
     /* read low Byte Green */
     i2c_begin_transmission(TCS34725_ADDRESS, TCS34725_GDATA | TCS34725_COMMAND_BIT);
     i2c_stop_transmission();
-    tmpGreen = i2c_read_2_bytes(TCS34725_ADDRESS);
+    usTmpGreen = i2c_read_2_bytes(TCS34725_ADDRESS);
 
-    fGreen = (float)((float)tmpGreen / (float)tmpClear) * 255.0;
-    green = fGreen;
+    fGreen = (float)((float)usTmpGreen / (float)usTmpClear) * 255.0;
+    ucGreen = fGreen;
 
-    return green;
+    return ucGreen;
 }
 
 /*
  * Returns the value of blue(0-255) of the given rgb sensor.
  */
-uint8_t getBlue(uint8_t position)
+uint8_t ucRGBGetBlue(uint8_t ucPosition)
 {
-    volatile uint16_t tmpBlue = 0, tmpClear = 0;
+    volatile uint16_t usTmpBlue = 0, usTmpClear = 0;
     float fBlue = 0;
-    uint8_t blue = 0;
+    uint8_t ucBlue = 0;
 
     /* read low Byte clear */
     i2c_begin_transmission(TCS34725_ADDRESS, TCS34725_CDATA | TCS34725_COMMAND_BIT);
     i2c_stop_transmission();
-    tmpClear = i2c_read_2_bytes(TCS34725_ADDRESS);
+    usTmpClear = i2c_read_2_bytes(TCS34725_ADDRESS);
 
     /* read low Byte red */
     i2c_begin_transmission(TCS34725_ADDRESS, TCS34725_BDATA | TCS34725_COMMAND_BIT);
     i2c_stop_transmission();
-    tmpBlue = i2c_read_2_bytes(TCS34725_ADDRESS);
+    usTmpBlue = i2c_read_2_bytes(TCS34725_ADDRESS);
 
-    fBlue = (float)((float)tmpBlue / (float)tmpClear) * 255.0;
-    blue = fBlue;
+    fBlue = (float)((float)usTmpBlue / (float)usTmpClear) * 255.0;
+    ucBlue = fBlue;
 
-    return blue;
+    return ucBlue;
 }
 
 /* Private functions */
@@ -282,7 +282,7 @@ extern QueueHandle_t i2c_from_isr;
  *
  * Checks if ID is equal to 0x44 so the corresponding sensor is either TCS34721 or TCS34725.
  */
-static _Bool checkDeviceID()
+static _Bool prvCheckDeviceID()
 {
     /* Read id and check if rgb sensor is a TCS34725 */
     //i2c_begin_transmission(TCS34725_ADDRESS, TCS34725_ID | TCS34725_COMMAND_BIT);
@@ -312,7 +312,7 @@ static _Bool checkDeviceID()
 /*
  * Function for initializing all gpio for the rgb sensors.
  */
-static _Bool initPins()
+static _Bool prvInitPins()
 {
     /* set pins 0 and 1 of A as output */
     /* 0x1 == 0001 push pull 10mhz */
@@ -326,7 +326,7 @@ static _Bool initPins()
 /*
  * Used for resetting all rgb sensor pins.
  */
-static void rgb_resetPins()
+static void prvRGBResetPins()
 {
     TCS34725_SENSOR1_8_VALUES = 0x00FF0000;
     TCS34725_SENSOR9_12_VALUES = 0xF0000000;
@@ -335,40 +335,40 @@ static void rgb_resetPins()
 /*
  * Used for resetting rgb sensor pin.
  */
-static void rgb_resetPin(uint8_t sensorPosition)
+static void prvRGBResetPin(uint8_t ucSensorPosition)
 {
-    if(sensorPosition == 0)
+    if(ucSensorPosition == 0)
     {
         TCS34725_SENSOR1_8_VALUES = (0x00010000);
     }
-    if(sensorPosition > 0 &&  sensorPosition < 8)
+    if(ucSensorPosition > 0 &&  ucSensorPosition < 8)
     {
-        TCS34725_SENSOR1_8_VALUES = (0x00010000 << sensorPosition);
+        TCS34725_SENSOR1_8_VALUES = (0x00010000 << ucSensorPosition);
     }
     else
     {
-        TCS34725_SENSOR9_12_VALUES = (0x10000000 << (sensorPosition - 8));
+        TCS34725_SENSOR9_12_VALUES = (0x10000000 << (ucSensorPosition - 8));
     }
 }
 
 /*
  * Used for setting rgb sensor pin.
  */
-static void rgb_setPin(uint8_t sensorPosition)
+static void prvSetPin(uint8_t ucSensorPosition)
 {
     /* Reset pins */
-    rgb_resetPins();
+    prvRGBResetPins();
     /* Set pin */
-    if(sensorPosition == 0)
+    if(ucSensorPosition == 0)
     {
         TCS34725_SENSOR1_8_VALUES = (0x00000001);
     }
-    if(sensorPosition > 0 &&  sensorPosition < 8)
+    if(ucSensorPosition > 0 &&  ucSensorPosition < 8)
     {
-        TCS34725_SENSOR1_8_VALUES = (0x00000001 << sensorPosition);
+        TCS34725_SENSOR1_8_VALUES = (0x00000001 << ucSensorPosition);
     }
     else
     {
-        TCS34725_SENSOR9_12_VALUES = (0x00001000 << (sensorPosition - 8));
+        TCS34725_SENSOR9_12_VALUES = (0x00001000 << (ucSensorPosition - 8));
     }
 }

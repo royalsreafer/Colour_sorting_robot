@@ -356,7 +356,7 @@ void init_task()
 
     i2c_init();					/* Initialise the I2C1 module */
     uart_init();				/* Initialise the USART1 module */
-    rgb_init();                 /* Initialise the RGB sensors */
+    RGBInit();                 /* Initialise the RGB sensors */
 
     instruction_t instruction = {0, ARM_6, 240, 60, 0, "t5", "t6"};
     xQueueSend(armInstructionQueue, &instruction, portMAX_DELAY);
@@ -608,10 +608,10 @@ void rgb_task()
     uint8_t currentRGB = 0;
     while (1)
     {
-        for (currentRGB = 0; currentRGB < SENSORCOUNT; currentRGB++)
+        for (currentRGB = 0; currentRGB < rgbSENSORCOUNT; currentRGB++)
         {
             vTaskDelay(pdMS_TO_TICKS(100));
-            rgbsensors[currentRGB] = getRGB(currentRGB);
+            rgbsensors[currentRGB] = xRGBgetRGB(currentRGB);
         }
     }
 }
